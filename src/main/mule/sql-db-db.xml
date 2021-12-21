@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cdbf17e7-09f1-4701-bd25-5e2fc1075b9c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="ea279374-d1aa-4853-8589-e7476c19b6fb" >
+		<db:mssql-connection host="DESKTOP-BN4PJPG" port="1433" user="Ashok_DataBase" password="3139" databaseName="Chanti" />
+	</db:config>
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="94d22cc6-6af7-448d-be33-b8188504b0ee" >
+		<db:mssql-connection host="DESKTOP-BN4PJPG" port="1433" user="Ashok_DataBase" password="3139" databaseName="Chanti" />
+	</db:config>
+	<flow name="sql-db-dbFlow" doc:id="f1cc3107-10ed-4f0c-bdf4-125eb854772b" >
+		<http:listener doc:name="Listener" doc:id="24f240ec-60ec-47af-a5e0-b65b4a97d002" config-ref="HTTP_Listener_config" path="/db"/>
+		<db:select doc:id="97a3ae0f-5991-4501-b8a9-dca4582b47d6" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from dept]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="dd4bea4f-ffe1-424f-a606-ff463ecc883a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:update doc:name="Update" doc:id="7c733fbd-a554-4b0e-b0da-081108369739" config-ref="Database_Config1">
+			<db:sql ><![CDATA[update Customers set deptid=:deptid,dname=:dname where C_ID=1001]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	deptid:payload.deptid,
+	dname:payload.dname
+}]]]></db:input-parameters>
+		</db:update>
+		<logger level="INFO" doc:name="Logger" doc:id="ae648c61-16d2-4cdc-911d-39a3cedd6368" message="############ this is select operation"/>
+	</flow>
+</mule>
